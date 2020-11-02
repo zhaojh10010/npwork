@@ -40,7 +40,9 @@ int main() {
         cout << "A connection come from: " << inet_ntoa(client.sin_addr)
             << "  Port: " << ntohs(client.sin_port) << endl;
         close(sock_conn);
+        cout << "Connection closed" << endl;
     }
     close(sock_server);
+    cout << "Server closed" << endl;
     return 0;
 }
