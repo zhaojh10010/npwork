@@ -1,10 +1,9 @@
 #include <sys/socket.h>
-#include <iostream>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdio.h>
+#include <iostream>
 using namespace std;
 #define MAX_WAIT_NUM 10 //maximum backlog num
 #define PORT 80
@@ -26,22 +25,24 @@ int main() {
     //bind the port
     if(bind(servfd, (sockaddr*)&server, sizeof(server)) == -1) {
         cout << "Bind port 80 failed" << endl;
-	perror("Error: ");
+	    perror("Error: ");
         exit(-1);
     }
-    //listen to connection
+    //listen to connections
     if(listen(servfd,MAX_WAIT_NUM) == -1) {
         cout << "Listen failed" << endl;
+        perror("Error: ");
         exit(-1);
     }
-    cout << "Server is listening to connections" << endl;
+    cout << "Listening to connections" << endl;
     while(1) {
-	//wait to create conn
+	    //wait to create conn
         if((sock_conn=accept(servfd,(sockaddr*) &client, (socklen_t *)sizeof(struct sockaddr))) == -1) {
             cout << "Create connection failed" << endl;
+            perror("Error: ");
             continue;
         }
-        cout << "A connection come from: " << inet_ntoa(client.sin_addr)
+        cout << "Connecting from: " << inet_ntoa(client.sin_addr)
             << "  Port: " << ntohs(client.sin_port) << endl;
         close(sock_conn);
         cout << "Connection closed" << endl;
