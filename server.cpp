@@ -10,10 +10,11 @@ using namespace std;
 #define PORT 80
 
 int main() {
+    cout << "Server started" << endl;
     int servfd,sock_conn;
     struct sockaddr_in server,client;
     //create socket
-    if((sock_server=socket(AF_INET, SOCK_STREAM,0)) ==-1 )
+    if((servfd=socket(AF_INET, SOCK_STREAM,0)) ==-1 )
         cout << "Create server socket failed" << endl;    
     
     bzero(&server,sizeof(server));
@@ -21,22 +22,22 @@ int main() {
     server.sin_addr.s_addr = htonl(INADDR_ANY);
     server.sin_port = htons(80);
     int opt = SO_REUSEADDR;
-    setsockopt(sock_server,SOL_SOCKET,SO_REUSEADDR,&opt,sizeof(opt));
+    setsockopt(servfd,SOL_SOCKET,SO_REUSEADDR,&opt,sizeof(opt));
     //bind the port
-    if(bind(sock_server, (sockaddr*)&server, sizeof(server)) == -1) {
+    if(bind(servfd, (sockaddr*)&server, sizeof(server)) == -1) {
         cout << "Bind port 80 failed" << endl;
 	perror("Error: ");
         exit(-1);
     }
     //listen to connection
-    if(listen(sock_server,MAX_WAIT_NUM) == -1) {
+    if(listen(servfd,MAX_WAIT_NUM) == -1) {
         cout << "Listen failed" << endl;
         exit(-1);
     }
-
+    cout << "Server is listening to connections" << endl;
     while(1) {
 	//wait to create conn
-        if((sock_conn=accept(sock_server,(sockaddr*) &client, (socklen_t *)sizeof(struct sockaddr))) == -1) {
+        if((sock_conn=accept(servfd,(sockaddr*) &client, (socklen_t *)sizeof(struct sockaddr))) == -1) {
             cout << "Create connection failed" << endl;
             continue;
         }
@@ -45,7 +46,7 @@ int main() {
         close(sock_conn);
         cout << "Connection closed" << endl;
     }
-    close(sock_server);
+    close(servfd);
     cout << "Server closed" << endl;
     return 0;
 }
