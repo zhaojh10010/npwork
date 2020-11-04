@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
     argv++;
+    bzero(&addr,sizeof(addr));
     //get address information from input
     for(;*argv!=NULL;argv++) {
         //when argv is ip address
@@ -43,7 +44,6 @@ int main(int argc, char *argv[]) {
         perror("Create socket failed: ");
         exit(-1);
     }
-    bzero(&addr,sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = SERVER_PORT;
     addr.sin_addr = *((struct in_addr*)he->h_addr);
