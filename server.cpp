@@ -32,7 +32,7 @@ int main() {
 	    perror("Bind port failed: ");
         exit(-1);
     }
-    cout << "Server started at port " << PORT << " successfully" << endl;
+    cout << "Server started at port " << PORT << " successfully." << endl;
     //listen to connections
     if(listen(listenfd,BACKLOG_NUM) == -1) {
         perror("Listen failed: ");
@@ -41,18 +41,21 @@ int main() {
     cout << "Listening to connections..." << endl;
     while(1) {
 	    //wait to create conn
-        socklen_t clilen = sizeof(cliaddr);//Here must alloc a variable or next step cannot write in the clilen
+        socklen_t clilen = sizeof(cliaddr);//Here must alloc a variable or 'accept' cannot write into the clilen
         if((connfd=accept(listenfd,(sockaddr*) &cliaddr, &clilen)) == -1) {
             perror("Create connection failed: ");
             continue;
         }
-        cout << "Connecting from: " << inet_ntoa(cliaddr.sin_addr)
+        cout << "New connection from: " << inet_ntoa(cliaddr.sin_addr)
             << "  Port: " << ntohs(cliaddr.sin_port) << endl;
+
+        string buf="Welcome to my server!\n";
+        send(connfd,buf.c_str(),buf.length(),0);
         close(connfd);
-        cout << "Connection closed: "<< inet_ntoa(cliaddr.sin_addr)
-            << ":" << ntohs(cliaddr.sin_port) << endl;
+        cout << "Connection "<< inet_ntoa(cliaddr.sin_addr)
+            << ":" << ntohs(cliaddr.sin_port) << " closed."<< endl;
     }
     close(listenfd);
-    cout << "Server shutdown" << endl;
+    cout << "Server shutdown." << endl;
     return 0;
 }
