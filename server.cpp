@@ -14,8 +14,7 @@ int main() {
     struct sockaddr_in servaddr,cliaddr;
     //create socket
     if((listenfd=socket(AF_INET, SOCK_STREAM,0)) ==-1 ) {
-        cout << "Create server socket failed" << endl;
-        perror("Error: ");
+        perror("Create server socket failed: ");
         exit(-1);
     }
     
@@ -30,15 +29,13 @@ int main() {
     setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&opt,sizeof(opt));
     //bind the port
     if(bind(listenfd, (sockaddr*)&servaddr, sizeof(servaddr)) == -1) {
-        cout << "Bind port 80 failed" << endl;
-	    perror("Error: ");
+	    perror("Bind port failed: ");
         exit(-1);
     }
     cout << "Server started at port " << PORT << " successfully" << endl;
     //listen to connections
     if(listen(listenfd,BACKLOG_NUM) == -1) {
-        cout << "Listen failed" << endl;
-        perror("Error: ");
+        perror("Listen failed: ");
         exit(-1);
     }
     cout << "Listening to connections..." << endl;
@@ -46,8 +43,7 @@ int main() {
 	    //wait to create conn
         socklen_t clilen = sizeof(cliaddr);//Here must alloc a variable or next step cannot write in the clilen
         if((connfd=accept(listenfd,(sockaddr*) &cliaddr, &clilen)) == -1) {
-            cout << "Create connection failed" << endl;
-            perror("Error: ");
+            perror("Create connection failed: ");
             continue;
         }
         cout << "Connecting from: " << inet_ntoa(cliaddr.sin_addr)
@@ -57,6 +53,6 @@ int main() {
             << ":" << ntohs(cliaddr.sin_port) << endl;
     }
     close(listenfd);
-    cout << "Server closed" << endl;
+    cout << "Server shutdown" << endl;
     return 0;
 }

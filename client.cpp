@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
         if((inet_aton(*argv, &addr.sin_addr))!=0) {
             he = gethostbyaddr(&addr.sin_addr,sizeof(struct in_addr),AF_INET);
             cout << "Get IP Address: " << *argv << endl;
-        } else {
+        } else {//when argv is domain name
             he = gethostbyname(*argv);
             cout << "Get domain name: " << *argv << endl;
         }
