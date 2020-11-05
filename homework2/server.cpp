@@ -10,7 +10,7 @@ using namespace std;
 #define MAXDATASIZE 100
 
 int main() {
-    int listenfd,connfd;
+    int listenfd,connfd,numbytes;
     char buf[MAXDATASIZE];
     struct sockaddr_in servaddr,cliaddr;
     cout << "==============================" << endl;
@@ -54,22 +54,35 @@ int main() {
             << ":" << ntohs(cliaddr.sin_port) << endl;
 
         string welc="Welcome to my server!";
-        send(connfd,welc.c_str(),welc.length(),0);
+        if(send(connfd,welc.c_str(),welc.length(),0)<=0) {
+            perror("Connection is closed.");
+            close(connfd);
+            continue;
+        }
         //TODO: Extract following to a method
         //Receive msg from client
-        bzero(buf,MAXDATASIZE);
-        cout << "Client: ";
-        recv(connfd,&buf,MAXDATASIZE,0);
-        cout << buf << endl;
-        // cout << "received " << strlen(buf) << " bits data" << endl;
-        //Reverse received string
-        int len = strlen(buf);
-        int i=len-1,j=0;
-        char temp[i]={0};
-        while(i>-1) {
-            temp[j++]=buf[i--];
+        
+        while(connfd) {
+            bzero(buf,MAXDATASIZE);
+            cout << "Client: ";
+            if((numbytes=recv(connfd,&buf,MAXDATASIZE,0))<=0) {
+                cout << "No information received.Connection will end immediately." << endl;
+                break;
+            };
+            cout << buf << endl;
+            // cout << "received " << strlen(buf) << " bits data" << endl;
+            //Reverse received string
+            int len = strlen(buf);
+            int i=len-1,j=0;
+            char temp[i]={0};
+            while(i>-1) {
+                temp[j++]=buf[i--];
+            }
+            if(send(connfd,temp,len,0)<=0) {
+                cout << "Send message failed." << endl;
+                break;
+            }
         }
-        send(connfd,temp,len,0);
 
         close(connfd);
         cout << "Connection "<< inet_ntoa(cliaddr.sin_addr)

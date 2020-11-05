@@ -76,18 +76,23 @@ int main(int argc, char *argv[]) {
     cout << "Server: " << buf << endl;
     //read from command line
     cout << "===========================" << endl;
-    cout << "Input your message, and press ENTER to finish\n(no more than 100 characters): ";
-    bzero(buf,MAXDATASIZE);
-    cin.getline(buf,MAXDATASIZE);
-    send(clifd,buf,strlen(buf),0);
-    //reveive from server
-    bzero(buf,MAXDATASIZE);
-    if((numbytes=recv(clifd,buf,MAXDATASIZE,0))==-1) {  
-        perror("Recv data error: ");
-        exit(-1);
-    } 
-    // cout << "received " << numbytes << " bits data" << endl;
-    cout << "Server: " << buf << endl;
+    while(1) {//Only suitable for one client.
+        cout << "Input your message, and press ENTER to send\n(no more than 100 characters): ";
+        bzero(buf,MAXDATASIZE);
+        cin.getline(buf,MAXDATASIZE);
+        if((numbytes=send(clifd,buf,strlen(buf),0))==-1) {
+            perror("Send data error: ");
+            exit(-1);
+        }
+        //reveive from server
+        bzero(buf,MAXDATASIZE);
+        if((numbytes=recv(clifd,buf,MAXDATASIZE,0))==-1) {  
+            perror("Recv data error: ");
+            exit(-1);
+        } 
+        // cout << "received " << numbytes << " bits data" << endl;
+        cout << "Server: " << buf << endl;
+    }
     cout << "=============================" << endl;
     cout << "Data transfer finished" << endl;
     return 0;
