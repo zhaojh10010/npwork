@@ -5,6 +5,7 @@
 #include <iostream>
 #include <netdb.h>
 #include <string.h>
+#include <stdio.h>
 
 using namespace std;
 #define MAXDATASIZE 100
@@ -16,6 +17,7 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in addr;
     char buf[MAXDATASIZE];
     char** pptr;
+    cout << "===============Client started===============" << endl;
     if(argc!=2) {
         cout << "Please input ip or domain name correctly" << endl;
         exit(-1);
@@ -65,13 +67,27 @@ int main(int argc, char *argv[]) {
     }
     cout << "Connected to the server using: " << inet_ntoa(addr.sin_addr) << ":" << addr.sin_port << endl;
     cout << "==============================" << endl;
-    cout << "Receving msg from server: " << endl;
+    // cout << "Receving msg from server: " << endl;
     if((numbytes=recv(clifd,buf,MAXDATASIZE,0))==-1) {
         perror("Recv data error: ");
         exit(-1);
     }
-    buf[numbytes]='\0';
-    cout << buf << endl;
+    //buf[numbytes]='\0';
+    cout << "Server: " << buf << endl;
+    //read from command line
+    cout << "===========================" << endl;
+    cout << "Input your message, and press ENTER to finish\n(no more than 100 characters): ";
+    bzero(buf,MAXDATASIZE);
+    cin.getline(buf,MAXDATASIZE);
+    send(clifd,buf,strlen(buf),0);
+    //reveive from server
+    bzero(buf,MAXDATASIZE);
+    if((numbytes=recv(clifd,buf,MAXDATASIZE,0))==-1) {  
+        perror("Recv data error: ");
+        exit(-1);
+    } 
+    // cout << "received " << numbytes << " bits data" << endl;
+    cout << "Server: " << buf << endl;
     cout << "=============================" << endl;
     cout << "Data transfer finished" << endl;
     return 0;

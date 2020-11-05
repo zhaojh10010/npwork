@@ -39,6 +39,7 @@ int main() {
         exit(-1);
     }
     cout << "Listening to connections..." << endl;
+    cout << "===========================" << endl;
     while(1) {
 	    //wait to create conn
         socklen_t clilen = sizeof(cliaddr);//Here must alloc a variable or 'accept' cannot write into the clilen

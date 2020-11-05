@@ -7,11 +7,14 @@
 using namespace std;
 #define BACKLOG_NUM 10 //maximum backlog num
 #define PORT 8888
+#define MAXDATASIZE 100
 
 int main() {
-    cout << "Server is starting..." << endl;
     int listenfd,connfd;
+    char buf[MAXDATASIZE];
     struct sockaddr_in servaddr,cliaddr;
+    cout << "==============================" << endl;
+    cout << "Server is starting..." << endl;
     //create socket
     if((listenfd=socket(AF_INET, SOCK_STREAM,0)) ==-1 ) {
         perror("Create server socket failed: ");
@@ -39,6 +42,7 @@ int main() {
         exit(-1);
     }
     cout << "Listening to connections..." << endl;
+    cout << "===========================" << endl;
     while(1) {
 	    //wait to create conn
         socklen_t clilen = sizeof(cliaddr);//Here must alloc a variable or 'accept' cannot write into the clilen
@@ -49,8 +53,24 @@ int main() {
         cout << "New connection from: " << inet_ntoa(cliaddr.sin_addr)
             << ":" << ntohs(cliaddr.sin_port) << endl;
 
-        string buf="Welcome to my server!\n";
-        send(connfd,buf.c_str(),buf.length(),0);
+        string welc="Welcome to my server!";
+        send(connfd,welc.c_str(),welc.length(),0);
+        //TODO: Extract following to a method
+        //Receive msg from client
+        bzero(buf,MAXDATASIZE);
+        cout << "Client: ";
+        recv(connfd,&buf,MAXDATASIZE,0);
+        cout << buf << endl;
+        // cout << "received " << strlen(buf) << " bits data" << endl;
+        //Reverse received string
+        int len = strlen(buf);
+        int i=len-1,j=0;
+        char temp[i]={0};
+        while(i>-1) {
+            temp[j++]=buf[i--];
+        }
+        send(connfd,temp,len,0);
+
         close(connfd);
         cout << "Connection "<< inet_ntoa(cliaddr.sin_addr)
             << ":" << ntohs(cliaddr.sin_port) << " closed."<< endl;
