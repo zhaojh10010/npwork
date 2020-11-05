@@ -22,8 +22,10 @@ int main() {
     bzero(&servaddr,sizeof(servaddr));
     bzero(&cliaddr,sizeof(cliaddr));
     servaddr.sin_family = AF_INET;
+    //Remeber all these two variables need to be converted
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
     servaddr.sin_port = htons(PORT);
+    //Set socket options
     int opt = SO_REUSEADDR;
     setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&opt,sizeof(opt));
     //bind the port
@@ -39,10 +41,10 @@ int main() {
         perror("Error: ");
         exit(-1);
     }
-    cout << "Listening to connections" << endl;
+    cout << "Listening to connections..." << endl;
     while(1) {
 	    //wait to create conn
-        socklen_t clilen = sizeof(cliaddr);
+        socklen_t clilen = sizeof(cliaddr);//Here must alloc a variable or next step cannot write in the clilen
         if((connfd=accept(listenfd,(sockaddr*) &cliaddr, &clilen)) == -1) {
             cout << "Create connection failed" << endl;
             perror("Error: ");
@@ -51,7 +53,8 @@ int main() {
         cout << "Connecting from: " << inet_ntoa(cliaddr.sin_addr)
             << "  Port: " << ntohs(cliaddr.sin_port) << endl;
         close(connfd);
-        cout << "Connection closed" << endl;
+        cout << "Connection closed: "<< inet_ntoa(cliaddr.sin_addr)
+            << ":" << ntohs(cliaddr.sin_port) << endl;
     }
     close(listenfd);
     cout << "Server closed" << endl;
