@@ -8,7 +8,7 @@
 
 using namespace std;
 #define MAXDATASIZE 100
-#define SERVER_PORT 80
+#define SERVER_PORT 8888
 
 int main(int argc, char *argv[]) {
     int clifd, numbytes;
@@ -45,11 +45,12 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
     addr.sin_family = AF_INET;
-    addr.sin_port = SERVER_PORT;
+    addr.sin_port = htons(SERVER_PORT);
     addr.sin_addr = *((struct in_addr*)he->h_addr);
-    cout << "Start to connect to server" << endl;
+    // inet_aton(*argv, &addr.sin_addr);
+    cout << "Start connecting to server" << endl;
     if(connect(clifd, (sockaddr*)&addr, sizeof(struct sockaddr))==-1) {
-        perror("Connect failed: ");
+        perror("Connecting failed: ");
         exit(-1);
     }
     cout << "Connected to the server: " << inet_ntoa(addr.sin_addr) << ":" << addr.sin_port << endl;
