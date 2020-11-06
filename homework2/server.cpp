@@ -47,7 +47,7 @@ int main() {
     cout << "==============================" << endl;
     while(1) {
 	    //wait to create conn
-        socklen_t clilen = sizeof(cliaddr);//Here must alloc a variable or 'accept' cannot write into the clilen
+        socklen_t clilen = sizeof(cliaddr);//Here must allocate a variable or 'accept' cannot write into the &clilen
         if((connfd=accept(listenfd,(sockaddr*) &cliaddr, &clilen)) == -1) {
             perror("Create connection failed: ");
             continue;
@@ -61,10 +61,8 @@ int main() {
             close(connfd);
             continue;
         }
-        //TODO: Extract following to a method
         //Receive msg from client
-        
-        while(connfd) {
+        while(1) {
             bzero(buf,MAXDATASIZE);
             cout << "Client: ";
             if((numbytes=recv(connfd,&buf,MAXDATASIZE,0))<=0) {
