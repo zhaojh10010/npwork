@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 using namespace std;
 #define BACKLOG_NUM 10 //maximum backlog num
 #define PORT 8888
@@ -42,7 +44,7 @@ int main() {
         exit(-1);
     }
     cout << "Listening to connections..." << endl;
-    cout << "===========================" << endl;
+    cout << "==============================" << endl;
     while(1) {
 	    //wait to create conn
         socklen_t clilen = sizeof(cliaddr);//Here must alloc a variable or 'accept' cannot write into the clilen
@@ -54,7 +56,7 @@ int main() {
             << ":" << ntohs(cliaddr.sin_port) << endl;
 
         string welc="Welcome to my server!";
-        if(send(connfd,welc.c_str(),welc.length(),0)<=0) {
+        if(send(connfd,welc.c_str(),welc.length()+1,0)<=0) {
             perror("Connection is closed.");
             close(connfd);
             continue;
@@ -74,7 +76,7 @@ int main() {
             //Reverse received string
             int len = strlen(buf);
             int i=len-1,j=0;
-            char temp[i]={0};
+            char temp[i];
             while(i>-1) {
                 temp[j++]=buf[i--];
             }

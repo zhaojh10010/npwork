@@ -6,6 +6,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 using namespace std;
 #define MAXDATASIZE 100
@@ -75,7 +76,7 @@ int main(int argc, char *argv[]) {
     //buf[numbytes]='\0';
     cout << "Server: " << buf << endl;
     //read from command line
-    cout << "===========================" << endl;
+    cout << "==============================" << endl;
     while(1) {//Only suitable for one client.
         cout << "Input your message, and press ENTER to send\n(no more than 100 characters): ";
         bzero(buf,MAXDATASIZE);
