@@ -52,8 +52,8 @@ int main() {
         cout << "New connection from: " << inet_ntoa(cliaddr.sin_addr)
             << ":" << ntohs(cliaddr.sin_port) << endl;
 
-        string buf="Welcome to my server!\n";
-        send(connfd,buf.c_str(),buf.length(),0);
+        string buf="Welcome to my server!";
+        send(connfd,buf.c_str(),buf.length()+1,0);
         close(connfd);
         cout << "Connection "<< inet_ntoa(cliaddr.sin_addr)
             << ":" << ntohs(cliaddr.sin_port) << " closed."<< endl;
