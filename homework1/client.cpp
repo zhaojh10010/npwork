@@ -5,6 +5,8 @@
 #include <iostream>
 #include <netdb.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 using namespace std;
 #define MAXDATASIZE 100

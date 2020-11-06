@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 using namespace std;
 #define BACKLOG_NUM 10 //maximum backlog num
 #define PORT 8888
