@@ -152,6 +152,7 @@ void process() {
         int numbytes,i,j;
         bzero(buf,MAXDATASIZE);
         if((numbytes=recv(connfd,&buf,MAXDATASIZE,0))<=0) {
+            cout << "===========================================================" << endl;
             cout << "Warning: No information received from "<< cinfo.name << "@" << cinfo.addr
                 << ":" << cinfo.port << ".Connection will close immediately." << endl;
             break;
@@ -182,7 +183,6 @@ void process() {
     }
     close(connfd);
     //Print all data tranfered from client
-    cout << "===========================================================" << endl;
     cout << "Notice: Connection from " << cinfo.name << "@" << cinfo.addr
         << ":" << cinfo.port << " closed."<< endl;
     
