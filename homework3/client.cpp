@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     addr.sin_port = htons(SERVER_PORT);
     addr.sin_addr = *((struct in_addr*)he->h_addr);//h_addr is the first address in h_addr_list
     // inet_aton(*argv, &addr.sin_addr);
-    cout << "Start connecting to server" << endl;
+    // cout << "Start connecting to server" << endl;
     if(connect(clifd, (sockaddr*)&addr, sizeof(struct sockaddr))==-1) {
         perror("Connecting failed: ");
         exit(-1);
@@ -70,13 +70,15 @@ int main(int argc, char *argv[]) {
     //transfer client name
     cout << "Please input your name, and press ENTER to send(no more than 100 characters):\nYour name: ";
     cin.getline(name,MAXDATASIZE);
+    if(strlen(name)==0)
+        strcpy(name,"anonymous");
     if((numbytes=send(clifd,name,MAXDATASIZE,0))==-1) {
         perror("Send name error: ");
         exit(-1);
     }
     cout << "============================================" << endl;
     // cout << "Receving msg from server: " << endl;
-    if((numbytes=recv(clifd,buf,MAXDATASIZE,0))==-1) {
+    if((numbytes=recv(clifd,buf,MAXDATASIZE,0))<=0) {
         perror("Recv data error: ");
         exit(-1);
     }
@@ -86,9 +88,10 @@ int main(int argc, char *argv[]) {
     //read message from command line
     cout << "============================================" << endl;
     while(1) {
-        cout << "Input your message, and press ENTER to send(no more than 100 characters):\nMessage: ";
+        cout << "Input your message, and press ENTER to send(no more than 100 characters):\n" << name <<":";
         bzero(buf,MAXDATASIZE);
         cin.getline(buf,MAXDATASIZE);
+        if(cin.eof()) break;//recognize Ctrl+D
         if((numbytes=send(clifd,buf,MAXDATASIZE,0))==-1) {
             perror("Send data error: ");
             exit(-1);
@@ -100,9 +103,10 @@ int main(int argc, char *argv[]) {
             exit(-1);
         } 
         // cout << "received " << numbytes << " bits data" << endl;
-        cout << "Server: " << buf << endl;
+        cout << "Server:" << buf << endl;
     }
     cout << "===========================================" << endl;
     cout << "Data transfer finished" << endl;
+    close(clifd);
     return 0;
 }

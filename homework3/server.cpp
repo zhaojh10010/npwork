@@ -60,7 +60,7 @@ int main() {
     struct c_info cinfo;
     pthread_t tid;
     pthread_t ts[BACKLOG_NUM];
-    cout << "===============Server started===============" << endl;
+    cout << "======================Server started=======================" << endl;
     //create socket
     if((listenfd=socket(AF_INET, SOCK_STREAM,0)) ==-1 ) {
         perror("Create server socket failed: ");
@@ -90,7 +90,7 @@ int main() {
     //init thread specific data key
     pthread_once(&key_once,alloc_key_once);
     cout << "Listening to connections..." << endl;
-    cout << "============================================" << endl;
+    cout << "===========================================================" << endl;
     while(1) {
 	    //wait to create conn
         socklen_t clilen = sizeof(cliaddr);//Here must alloc a variable or 'accept' cannot write into the clilen
@@ -102,9 +102,6 @@ int main() {
         //Create thread and allocate private variable
         cinfo.addr = inet_ntoa(cliaddr.sin_addr);
         cinfo.port = ntohs(cliaddr.sin_port);
-        char message[MAXMESSAGESIZE];//for every thread, this must be unique
-        bzero(message,MAXMESSAGESIZE);
-        cinfo.msg = message;
         cinfo.msgpos = 0;
         cinfo.connfd = connfd;
         //create client thread
@@ -131,6 +128,8 @@ void process() {
     //get private info from TSD
     struct c_info cinfo = *(struct c_info *)pthread_getspecific(key);
     int connfd = cinfo.connfd;
+    char message[MAXMESSAGESIZE];
+    cinfo.msg = message;
     //reveive client name
     char name[MAXDATASIZE];
     if(recv(connfd,name,MAXDATASIZE,0)==-1) {
@@ -141,10 +140,6 @@ void process() {
         return;
     }
     cinfo.name = name;
-    if(strlen(cinfo.name)==0) {
-        strcpy(name,"anonymous");
-        cinfo.name=name;
-    }
     cout << "New connection from: " << cinfo.name << "@" << cinfo.addr
         << ":" << cinfo.port << endl;
     char welc[]="Welcome to my server,";
@@ -158,12 +153,12 @@ void process() {
         char buf[MAXDATASIZE];
         int numbytes,i,j;
         bzero(buf,MAXDATASIZE);
-        cout << cinfo.name << ": ";
         if((numbytes=recv(connfd,&buf,MAXDATASIZE,0))<=0) {
-            cout << "No information received. Connection will close immediately." << endl;
+            cout << "Warning: No information received from "<< cinfo.name << "@" << cinfo.addr
+                << ":" << cinfo.port << ".Connection will close immediately." << endl;
             break;
         };
-        cout << buf << endl;
+        cout << cinfo.name << ":" << buf << endl;
         // cout << "received " << strlen(buf) << " bits data" << endl;
         //Suppose the MAXMESSAGESIZE is suitable for a client in a session
         //so ignore buffer overflow problem
@@ -189,15 +184,15 @@ void process() {
     }
     close(connfd);
     //Print all data tranfered from client
-    if(strlen(cinfo.msg)>0) {
-        cout << "============================================" << endl;
-        cout << "All data from " << cinfo.name << "@" << cinfo.addr
-            << ":" << cinfo.port << " are:\n" << cinfo.msg;
-        cout << "============================================" << endl;
-    }
+    cout << "===========================================================" << endl;
     cout << "Notice: Connection from " << cinfo.name << "@" << cinfo.addr
         << ":" << cinfo.port << " closed."<< endl;
-    cout << "============================================" << endl;
+    
+    if(strlen(cinfo.msg)>0) {
+        cout << "All data from " << cinfo.name << "@" << cinfo.addr
+            << ":" << cinfo.port << " are:\n" << cinfo.msg;
+    }
+    cout << "===========================================================" << endl;
 }
 
 static void alloc_key_once() {
