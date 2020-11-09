@@ -62,6 +62,8 @@ int main() {
             continue;
         }
         //Receive msg from client
+        pthread_t pid;
+        
         while(1) {
             bzero(buf,MAXDATASIZE);
             cout << "Client: ";

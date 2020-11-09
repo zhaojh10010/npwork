@@ -76,5 +76,6 @@ int main(int argc, char *argv[]) {
     cout << buf << endl;
     cout << "=============================" << endl;
     cout << "Data transfer finished" << endl;
+    close(clifd);
     return 0;
 }

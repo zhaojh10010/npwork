@@ -6,17 +6,61 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
+
 using namespace std;
 #define BACKLOG_NUM 10 //maximum backlog num
 #define PORT 8888
 #define MAXDATASIZE 100
+#define MAXMESSAGESIZE 9999
+static pthread_key_t key;
+static pthread_once_t key_once = PTHREAD_ONCE_INIT;
+
+/**
+ * execute after a thread start, 
+ * mainly used to store client infomation in TSD
+ * @param arg client information
+ */
+void *start(void *arg);
+
+
+/**
+ * Process client request
+ */
+void process();
+
+/**
+ * Release thread specific data
+ */
+static void key_destructor(void *arg);
+
+static void alloc_key_once();
+
+/**
+ * A client struct for thread
+ * @param connfd client socket descriptor
+ * @param name client name
+ * @param addr client ip address
+ * @param port client port
+ * @param msg  all messages in one session
+ * @param msgpos index of first idle area in msg
+ */
+struct c_info{
+    int connfd;
+    char *name;
+    char *addr;
+    int port;
+    char *msg;
+    int msgpos;
+};
 
 int main() {
-    int listenfd,connfd,numbytes;
-    char buf[MAXDATASIZE];
+    int listenfd,connfd;
     struct sockaddr_in servaddr,cliaddr;
-    cout << "==============================" << endl;
-    cout << "Server is starting..." << endl;
+    struct c_info cinfo;
+    pthread_t tid;
+    pthread_t ts[BACKLOG_NUM];
+    cout << "===============Server started===============" << endl;
     //create socket
     if((listenfd=socket(AF_INET, SOCK_STREAM,0)) ==-1 ) {
         perror("Create server socket failed: ");
@@ -43,8 +87,10 @@ int main() {
         perror("Listen failed: ");
         exit(-1);
     }
+    //init thread specific data key
+    pthread_once(&key_once,alloc_key_once);
     cout << "Listening to connections..." << endl;
-    cout << "==============================" << endl;
+    cout << "============================================" << endl;
     while(1) {
 	    //wait to create conn
         socklen_t clilen = sizeof(cliaddr);//Here must alloc a variable or 'accept' cannot write into the clilen
@@ -52,45 +98,108 @@ int main() {
             perror("Create connection failed: ");
             continue;
         }
-        cout << "New connection from: " << inet_ntoa(cliaddr.sin_addr)
-            << ":" << ntohs(cliaddr.sin_port) << endl;
-
-        string welc="Welcome to my server!";
-        if(send(connfd,welc.c_str(),welc.length()+1,0)<=0) {
-            perror("Connection is closed.");
-            close(connfd);
+        
+        //Create thread and allocate private variable
+        cinfo.addr = inet_ntoa(cliaddr.sin_addr);
+        cinfo.port = ntohs(cliaddr.sin_port);
+        char message[MAXMESSAGESIZE];//for every thread, this must be unique
+        bzero(message,MAXMESSAGESIZE);
+        cinfo.msg = message;
+        cinfo.msgpos = 0;
+        cinfo.connfd = connfd;
+        //create client thread
+        if(pthread_create(&tid,NULL,&start,&cinfo)<0) {
+            perror("Create thread failed..");
+            close(cinfo.connfd);
+            cout << "Connection "<< cinfo.addr
+                << ":" << cinfo.port << " closed."<< endl;
             continue;
         }
-        //TODO: Extract following to a method
-        //Receive msg from client
-        
-        while(connfd) {
-            bzero(buf,MAXDATASIZE);
-            cout << "Client: ";
-            if((numbytes=recv(connfd,&buf,MAXDATASIZE,0))<=0) {
-                cout << "No information received.Connection will end immediately." << endl;
-                break;
-            };
-            cout << buf << endl;
-            // cout << "received " << strlen(buf) << " bits data" << endl;
-            //Reverse received string
-            int len = strlen(buf);
-            int i=len-1,j=0;
-            char temp[i];
-            while(i>-1) {
-                temp[j++]=buf[i--];
-            }
-            if(send(connfd,temp,len,0)<=0) {
-                cout << "Send message failed." << endl;
-                break;
-            }
-        }
-
-        close(connfd);
-        cout << "Connection "<< inet_ntoa(cliaddr.sin_addr)
-            << ":" << ntohs(cliaddr.sin_port) << " closed."<< endl;
     }
     close(listenfd);
     cout << "Server shutdown." << endl;
     return 0;
+}
+
+void *start(void *arg) {
+    pthread_setspecific(key,arg);
+    process();
+    return NULL;
+}
+
+void process() {
+    //get private info from TSD
+    struct c_info cinfo = *(struct c_info *)pthread_getspecific(key);
+    int connfd = cinfo.connfd;
+    //reveive client name
+    char name[MAXDATASIZE];
+    if(recv(connfd,name,MAXDATASIZE,0)==-1) {
+        perror("Receive client name failed: ");
+        // close(connfd);
+        cout << "Connection "<< cinfo.addr
+            << ":" << cinfo.port << " closed."<< endl;
+        return;
+    }
+    cinfo.name = name;
+    if(strlen(cinfo.name)==0) {
+        strcpy(name,"anonymous");
+        cinfo.name=name;
+    }
+    cout << "New connection from: " << cinfo.name << "@" << cinfo.addr
+        << ":" << cinfo.port << endl;
+    char welc[]="Welcome to my server,";
+    strcat(welc,cinfo.name);
+    if(send(connfd,welc,strlen(welc)+1,0)==-1) {
+        perror("Connection is closed.");
+        // close(connfd);
+        return;
+    }
+    while(1) {
+        char buf[MAXDATASIZE];
+        int numbytes,i,j;
+        bzero(buf,MAXDATASIZE);
+        cout << cinfo.name << ": ";
+        if((numbytes=recv(connfd,&buf,MAXDATASIZE,0))<=0) {
+            cout << "No information received. Connection will close immediately." << endl;
+            break;
+        };
+        cout << buf << endl;
+        // cout << "received " << strlen(buf) << " bits data" << endl;
+        //Suppose the MAXMESSAGESIZE is suitable for a client in a session
+        //so ignore buffer overflow problem
+        int len = strlen(buf);
+        for(i=0;i<len;i++) {
+            cinfo.msg[cinfo.msgpos+i] = buf[i];
+        }
+        cinfo.msgpos += i;
+        cinfo.msg[cinfo.msgpos] = '\n';//add '\n' for every received msg
+        cinfo.msgpos++;
+
+        //Reverse received string
+        i=len-1;
+        j=0;
+        char temp[i];
+        while(i>-1) {
+            temp[j++]=buf[i--];
+        }
+        if(send(connfd,temp,len,0)==-1) {
+            perror("Send message failed: ");
+            break;
+        }
+    }
+    close(connfd);
+    //Print all data tranfered from client
+    if(strlen(cinfo.msg)>0) {
+        cout << "============================================" << endl;
+        cout << "All data from " << cinfo.name << "@" << cinfo.addr
+            << ":" << cinfo.port << " are:\n" << cinfo.msg;
+        cout << "============================================" << endl;
+    }
+    cout << "Notice: Connection from " << cinfo.name << "@" << cinfo.addr
+        << ":" << cinfo.port << " closed."<< endl;
+    cout << "============================================" << endl;
+}
+
+static void alloc_key_once() {
+    pthread_key_create(&key, NULL);
 }

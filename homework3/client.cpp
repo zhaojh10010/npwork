@@ -17,10 +17,11 @@ int main(int argc, char *argv[]) {
     struct hostent* he;
     struct sockaddr_in addr;
     char buf[MAXDATASIZE];
+    char name[MAXDATASIZE];
     char** pptr;
     cout << "===============Client started===============" << endl;
     if(argc!=2) {
-        cout << "Please input ip or domain name correctly" << endl;
+        cout << "Please input ip or domain name correctly." << endl;
         exit(-1);
     }
     argv++;
@@ -40,7 +41,7 @@ int main(int argc, char *argv[]) {
         }
     }
     if(he==NULL) {
-        cout << "No address information found" << endl;
+        cout << "No address information found." << endl;
         exit(-1);
     }
     cout << "Get address information as follows:" << endl;
@@ -51,8 +52,7 @@ int main(int argc, char *argv[]) {
     for (pptr = he->h_addr_list; *pptr!=NULL; pptr++) {
         cout << "- ip address: " << inet_ntoa(*(in_addr*) (*pptr)) << endl;
     }
-    
-
+    cout << "============================================" << endl;
     if((clifd=socket(AF_INET,SOCK_STREAM,0))==-1) {
         perror("Create socket failed: ");
         exit(-1);
@@ -67,25 +67,33 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
     cout << "Connected to the server using: " << inet_ntoa(addr.sin_addr) << ":" << addr.sin_port << endl;
-    cout << "==============================" << endl;
+    //transfer client name
+    cout << "Please input your name, and press ENTER to send(no more than 100 characters):\nYour name: ";
+    cin.getline(name,MAXDATASIZE);
+    if((numbytes=send(clifd,name,MAXDATASIZE,0))==-1) {
+        perror("Send name error: ");
+        exit(-1);
+    }
+    cout << "============================================" << endl;
     // cout << "Receving msg from server: " << endl;
     if((numbytes=recv(clifd,buf,MAXDATASIZE,0))==-1) {
         perror("Recv data error: ");
         exit(-1);
     }
     //buf[numbytes]='\0';
+
     cout << "Server: " << buf << endl;
-    //read from command line
-    cout << "==============================" << endl;
-    while(1) {//Only suitable for one client.
-        cout << "Input your message, and press ENTER to send\n(no more than 100 characters): ";
+    //read message from command line
+    cout << "============================================" << endl;
+    while(1) {
+        cout << "Input your message, and press ENTER to send(no more than 100 characters):\nMessage: ";
         bzero(buf,MAXDATASIZE);
         cin.getline(buf,MAXDATASIZE);
-        if((numbytes=send(clifd,buf,strlen(buf),0))==-1) {
+        if((numbytes=send(clifd,buf,MAXDATASIZE,0))==-1) {
             perror("Send data error: ");
             exit(-1);
         }
-        //reveive from server
+        //reveive message from server
         bzero(buf,MAXDATASIZE);
         if((numbytes=recv(clifd,buf,MAXDATASIZE,0))==-1) {  
             perror("Recv data error: ");
@@ -94,7 +102,7 @@ int main(int argc, char *argv[]) {
         // cout << "received " << numbytes << " bits data" << endl;
         cout << "Server: " << buf << endl;
     }
-    cout << "=============================" << endl;
+    cout << "===========================================" << endl;
     cout << "Data transfer finished" << endl;
     return 0;
 }
