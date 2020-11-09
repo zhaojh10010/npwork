@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
         cout << "No address information found." << endl;
         exit(-1);
     }
+    //Print server address information
     cout << "Get address information as follows:" << endl;
     cout << "- host name: " << he->h_name << endl;
     for (pptr = he->h_aliases; *pptr!=NULL; pptr++) {
@@ -60,13 +61,13 @@ int main(int argc, char *argv[]) {
     addr.sin_family = AF_INET;
     addr.sin_port = htons(SERVER_PORT);
     addr.sin_addr = *((struct in_addr*)he->h_addr);//h_addr is the first address in h_addr_list
-    // inet_aton(*argv, &addr.sin_addr);
     // cout << "Start connecting to server" << endl;
     if(connect(clifd, (sockaddr*)&addr, sizeof(struct sockaddr))==-1) {
         perror("Connecting failed: ");
         exit(-1);
     }
-    cout << "Connected to the server using: " << inet_ntoa(addr.sin_addr) << ":" << addr.sin_port << endl;
+    cout << "Connected to the server "<< *(--argv) << ":" << SERVER_PORT << endl;
+    cout << "local address: " << inet_ntoa(addr.sin_addr) << ":" << addr.sin_port << endl;
     //transfer client name
     cout << "Please input your name, and press ENTER to send(no more than 100 characters):\nYour name: ";
     cin.getline(name,MAXDATASIZE);
@@ -91,6 +92,7 @@ int main(int argc, char *argv[]) {
         cout << "Input your message, and press ENTER to send(no more than 100 characters):\n" << name <<":";
         bzero(buf,MAXDATASIZE);
         cin.getline(buf,MAXDATASIZE);
+        if(strlen(buf)==0) continue;
         if(cin.eof()) break;//recognize Ctrl+D
         if((numbytes=send(clifd,buf,MAXDATASIZE,0))==-1) {
             perror("Send data error: ");
