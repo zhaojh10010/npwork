@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
     cout << "Connected to the server using: " << inet_ntoa(addr.sin_addr) << ":" << addr.sin_port << endl;
-    cout << "==============================" << endl;
+    cout << "============================================" << endl;
     // cout << "Receving msg from server: " << endl;
     if((numbytes=recv(clifd,buf,MAXDATASIZE,0))==-1) {
         perror("Recv data error: ");
@@ -76,11 +76,16 @@ int main(int argc, char *argv[]) {
     //buf[numbytes]='\0';
     cout << "Server: " << buf << endl;
     //read from command line
-    cout << "==============================" << endl;
+    cout << "============================================" << endl;
     while(1) {//Only suitable for one client.
-        cout << "Input your message, and press ENTER to send\n(no more than 100 characters): ";
+        cout << "Input your message, and press ENTER to send(no more than 100 characters):\n" << "Input:";
         bzero(buf,MAXDATASIZE);
         cin.getline(buf,MAXDATASIZE);
+        if(cin.eof()) {//recognize Ctrl+D
+            cout << "(Input interrupted)" << endl;
+            break;
+        }
+        if(strlen(buf)==0) continue;//recognize ENTER
         if((numbytes=send(clifd,buf,strlen(buf),0))==-1) {
             perror("Send data error: ");
             exit(-1);
@@ -94,7 +99,7 @@ int main(int argc, char *argv[]) {
         // cout << "received " << numbytes << " bits data" << endl;
         cout << "Server: " << buf << endl;
     }
-    cout << "=============================" << endl;
+    cout << "============================================" << endl;
     cout << "Data transfer finished" << endl;
     return 0;
 }
