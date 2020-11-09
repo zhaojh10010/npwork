@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
         cout << "Input your message, and press ENTER to send(no more than 100 characters):\n" << name <<":";
         bzero(buf,MAXDATASIZE);
         cin.getline(buf,MAXDATASIZE);
-        if(strlen(buf)==0) continue;
+        if(strlen(buf)==0) continue;//recognize ENTER
         if(cin.eof()) break;//recognize Ctrl+D
         if((numbytes=send(clifd,buf,MAXDATASIZE,0))==-1) {
             perror("Send data error: ");
