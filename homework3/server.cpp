@@ -30,10 +30,8 @@ void *start(void *arg);
 void process();
 
 /**
- * Release thread specific data
+ * Allocate TSD key
  */
-static void key_destructor(void *arg);
-
 static void alloc_key_once();
 
 /**
