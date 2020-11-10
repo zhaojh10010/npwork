@@ -56,8 +56,8 @@ int main() {
     int listenfd,connfd;
     struct sockaddr_in servaddr,cliaddr;
     struct c_info cinfo;
+    socklen_t clilen;
     pthread_t tid;
-    pthread_t ts[BACKLOG_NUM];
     cout << "======================Server started=======================" << endl;
     //create socket
     if((listenfd=socket(AF_INET, SOCK_STREAM,0)) ==-1 ) {
@@ -66,7 +66,6 @@ int main() {
     }
     
     bzero(&servaddr,sizeof(servaddr));
-    bzero(&cliaddr,sizeof(cliaddr));
     servaddr.sin_family = AF_INET;
     //Remeber all these two variables need to be converted
     servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -91,7 +90,8 @@ int main() {
     cout << "===========================================================" << endl;
     while(1) {
 	    //wait to create conn
-        socklen_t clilen = sizeof(cliaddr);//Here must alloc a variable or 'accept' cannot write into the clilen
+        bzero(&cliaddr,sizeof(cliaddr));
+        clilen = sizeof(cliaddr);//Here must alloc a variable or 'accept' cannot write into the clilen
         if((connfd=accept(listenfd,(sockaddr*) &cliaddr, &clilen)) == -1) {
             perror("Create connection failed: ");
             continue;
