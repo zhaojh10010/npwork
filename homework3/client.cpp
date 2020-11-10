@@ -110,8 +110,7 @@ int main(int argc, char *argv[]) {
         // cout << "received " << numbytes << " bits data" << endl;
         cout << "Server:" << buf << endl;
     }
-    cout << "===========================================" << endl;
-    cout << "Data transfer finished" << endl;
+    cout << "===============Client ended================" << endl;
     close(clifd);
     return 0;
 }
