@@ -151,7 +151,7 @@ void process() {
         char buf[MAXDATASIZE];
         int numbytes,i,j;
         bzero(buf,MAXDATASIZE);
-        if((numbytes=recv(connfd,&buf,MAXDATASIZE,0))<=0) {
+        if((numbytes=recv(connfd,buf,MAXDATASIZE,0))<=0) {
             cout << "===========================================================" << endl;
             cout << "Warning: No information received from "<< cinfo.name << "@" << cinfo.addr
                 << ":" << cinfo.port << ".Connection will close immediately." << endl;

@@ -67,7 +67,7 @@ int main() {
         while(1) {
             bzero(buf,MAXDATASIZE);
             cout << "Client: ";
-            if((numbytes=recv(connfd,&buf,MAXDATASIZE,0))<=0) {
+            if((numbytes=recv(connfd,buf,MAXDATASIZE,0))<=0) {
                 cout << "No information received.Connection will end immediately." << endl;
                 break;
             };
@@ -81,7 +81,7 @@ int main() {
                 temp[j++]=buf[i--];
             }
             if(send(connfd,temp,len,0)<=0) {
-                cout << "Send message failed." << endl;
+                perror("Send message failed: ");
                 break;
             }
         }
