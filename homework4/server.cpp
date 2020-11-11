@@ -39,6 +39,7 @@ void close_cli(struct c_info *cinfo);
  * @param port client port
  * @param msg  all messages in one session
  * @param msgpos index of first idle area in msg
+ * @param firstconn if the client is first connect to server
  */
 struct c_info{
     int connfd;
@@ -47,6 +48,7 @@ struct c_info{
     int port;
     char *msg;
     int msgpos;
+    int firstconn;
 };
 
 int main() {
@@ -115,6 +117,7 @@ int main() {
                     clients[i].name = new char[MAXDATASIZE];
                     clients[i].msg = new char[MAXMESSAGESIZE];
                     clients[i].msgpos = 0;
+                    clients[i].firstconn = 1;
                     break;
                 }
             if(i==FD_SETSIZE) cout << "Warning: too many clients" << endl;
@@ -128,22 +131,24 @@ int main() {
             struct c_info *cinfo = &clients[i];
             if((clifd=cinfo->connfd)<0) continue;
             if(FD_ISSET(clifd,&rset)) {
-                if(strlen(cinfo->name)==0) {//first connect
+                if(cinfo->firstconn) {//first connect
                     //reveive client name
                     if(recv(cinfo->connfd,cinfo->name,MAXDATASIZE,0)==-1) {
                         perror("Receive client name failed: ");
                         close_cli(cinfo);
                         break;
                     }
+                    cinfo->firstconn=0;
                     cout << "New connection from: " << cinfo->name << "@" << cinfo->addr
                         << ":" << cinfo->port << endl;
                     char welc[]="Welcome to my server,";
                     strcat(welc,cinfo->name);
-                    if(send(connfd,welc,strlen(welc)+1,0)==-1) {
+                    if(send(cinfo->connfd,welc,strlen(welc)+1,0)==-1) {
                         perror("Send error: ");
                         close_cli(cinfo);
                         break;
                     }
+                    continue;
                 }
                 
                 //process client request
