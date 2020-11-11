@@ -117,31 +117,33 @@ int main() {
 }
 
 void *start(void *arg) {
-    pthread_setspecific(key,arg);
+    //allocate a separated space for thread
+    struct c_info cinfo = *(struct c_info *)arg;
+    pthread_setspecific(key,&cinfo);
     process();
     return NULL;
 }
 
 void process() {
     //get private info from TSD
-    struct c_info cinfo = *(struct c_info *)pthread_getspecific(key);
-    int connfd = cinfo.connfd;
+    struct c_info *cinfo = (struct c_info *)pthread_getspecific(key);
+    int connfd = cinfo->connfd;
     char message[MAXMESSAGESIZE];
-    cinfo.msg = message;
+    cinfo->msg = message;
     //reveive client name
     char name[MAXDATASIZE];
     if(recv(connfd,name,MAXDATASIZE,0)==-1) {
         perror("Receive client name failed: ");
         // close(connfd);
-        cout << "Connection "<< cinfo.addr
-            << ":" << cinfo.port << " closed."<< endl;
+        cout << "Connection "<< cinfo->addr
+            << ":" << cinfo->port << " closed."<< endl;
         return;
     }
-    cinfo.name = name;
-    cout << "New connection from: " << cinfo.name << "@" << cinfo.addr
-        << ":" << cinfo.port << endl;
+    cinfo->name = name;
+    cout << "New connection from: " << cinfo->name << "@" << cinfo->addr
+        << ":" << cinfo->port << endl;
     char welc[]="Welcome to my server,";
-    strcat(welc,cinfo.name);
+    strcat(welc,cinfo->name);
     if(send(connfd,welc,strlen(welc)+1,0)==-1) {
         perror("Connection is closed.");
         // close(connfd);
@@ -153,21 +155,21 @@ void process() {
         bzero(buf,MAXDATASIZE);
         if((numbytes=recv(connfd,buf,MAXDATASIZE,0))<=0) {
             cout << "===========================================================" << endl;
-            cout << "Warning: No information received from "<< cinfo.name << "@" << cinfo.addr
-                << ":" << cinfo.port << ".Connection will close immediately." << endl;
+            cout << "Warning: No information received from "<< cinfo->name << "@" << cinfo->addr
+                << ":" << cinfo->port << ".Connection will close immediately." << endl;
             break;
         };
-        cout << cinfo.name << ":" << buf << endl;
+        cout << cinfo->name << ":" << buf << endl;
         // cout << "received " << strlen(buf) << " bits data" << endl;
         //Suppose the MAXMESSAGESIZE is suitable for a client in a session
         //so ignore buffer overflow problem
         int len = strlen(buf);
         for(i=0;i<len;i++) {
-            cinfo.msg[cinfo.msgpos+i] = buf[i];
+            cinfo->msg[cinfo->msgpos+i] = buf[i];
         }
-        cinfo.msgpos += i;
-        cinfo.msg[cinfo.msgpos] = '\n';//add '\n' for every received msg
-        cinfo.msgpos++;
+        cinfo->msgpos += i;
+        cinfo->msg[cinfo->msgpos] = '\n';//add '\n' for every received msg
+        cinfo->msgpos++;
 
         //Reverse received string
         i=len-1;
@@ -183,12 +185,12 @@ void process() {
     }
     close(connfd);
     //Print all data tranfered from client
-    cout << "Notice: Connection from " << cinfo.name << "@" << cinfo.addr
-        << ":" << cinfo.port << " closed."<< endl;
+    cout << "Notice: Connection from " << cinfo->name << "@" << cinfo->addr
+        << ":" << cinfo->port << " closed."<< endl;
     
-    if(strlen(cinfo.msg)>0) {
-        cout << "All data from " << cinfo.name << "@" << cinfo.addr
-            << ":" << cinfo.port << " are:\n" << cinfo.msg;
+    if(strlen(cinfo->msg)>0) {
+        cout << "All data from " << cinfo->name << "@" << cinfo->addr
+            << ":" << cinfo->port << " are:\n" << cinfo->msg;
     }
     cout << "===========================================================" << endl;
 }
