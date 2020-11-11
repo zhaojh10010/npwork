@@ -20,16 +20,16 @@ fd_set rset,allset;
 
 /**
  * Process client request
- * @param c client info
+ * @param cinfo client info
  * @param buf buffer
  */
-void process(struct c_info *c, char *buf);
+void process(struct c_info *cinfo, char *buf);
 
 /**
  * Close client and clear FD_SET bits
- * @param c client info
+ * @param cinfo client info
  */
-void close_cli(struct c_info *c);
+void close_cli(struct c_info *cinfo);
 
 /**
  * A client struct for thread
@@ -125,30 +125,29 @@ int main() {
         }
         for(i=0;i<=maxi;i++) {
             bzero(buf,MAXDATASIZE);
-            struct c_info *c = &clients[i];
-            if((clifd=c->connfd)<0) continue;
+            struct c_info *cinfo = &clients[i];
+            if((clifd=cinfo->connfd)<0) continue;
             if(FD_ISSET(clifd,&rset)) {
-                if(strlen(c->name)==0) {//first connect
+                if(strlen(cinfo->name)==0) {//first connect
                     //reveive client name
-                    if(recv(c->connfd,c->name,MAXDATASIZE,0)==-1) {
+                    if(recv(cinfo->connfd,cinfo->name,MAXDATASIZE,0)==-1) {
                         perror("Receive client name failed: ");
-                        close_cli(c);
+                        close_cli(cinfo);
                         break;
                     }
-                    cout << "New connection from: " << c->name << "@" << c->addr
-                        << ":" << c->port << endl;
+                    cout << "New connection from: " << cinfo->name << "@" << cinfo->addr
+                        << ":" << cinfo->port << endl;
                     char welc[]="Welcome to my server,";
-                    strcat(welc,c->name);
+                    strcat(welc,cinfo->name);
                     if(send(connfd,welc,strlen(welc)+1,0)==-1) {
                         perror("Send error: ");
-                        close_cli(c);
+                        close_cli(cinfo);
                         break;
                     }
                 }
                 
                 //process client request
-                // process(&cinfo,buf);
-                process(c,buf);
+                process(cinfo,buf);
                 if(--nready<=0) break;
             }
         }
@@ -158,47 +157,46 @@ int main() {
     return 0;
 }
 
-void process(struct c_info *c, char *buf) {
-    int connfd = c->connfd;
+void process(struct c_info *cinfo, char *buf) {
+    int connfd = cinfo->connfd;
     
     int numbytes,i,j;
     if((numbytes=recv(connfd,buf,MAXDATASIZE,0))<=0) {
         if(numbytes==0)
             close(connfd);
-        close_cli(c);
+        close_cli(cinfo);
         return;
     };
-    cout << c->name << ":" << buf << endl;
+    cout << cinfo->name << ":" << buf << endl;
     
     //Suppose the MAXMESSAGESIZE is suitable for a client in a session
     //so ignore buffer overflow problem
 
     int len = strlen(buf);
     for(i=0;i<len;i++) {
-        c->msg[c->msgpos++] = buf[i];
+        cinfo->msg[cinfo->msgpos++] = buf[i];
     }
-    c->msg[c->msgpos] = '\n';//add '\n' for every received msg
-    c->msgpos++;
+    cinfo->msg[cinfo->msgpos] = '\n';//add '\n' for every received msg
+    cinfo->msgpos++;
     //send message back
     if(send(connfd,buf,len+1,0)==-1) {
         perror("Send message failed: ");
-        close_cli(c);
+        close_cli(cinfo);
         return;
     }
 }
 
-void close_cli(struct c_info *c) {
-    // struct c_info cinfo = *c;
-    FD_CLR(c->connfd, &allset);
+void close_cli(struct c_info *cinfo) {
+    FD_CLR(cinfo->connfd, &allset);
     cout << "===========================================================" << endl;
-    cout << "Notice: Connection from " << c->name << "@" << c->addr
-            << ":" << c->port << " closed."<< endl;
-    if(strlen(c->msg)>0)
-        cout << "All data from " << c->name << "@" << c->addr
-            << ":" << c->port << " are:\n" << c->msg;
+    cout << "Notice: Connection from " << cinfo->name << "@" << cinfo->addr
+            << ":" << cinfo->port << " closed."<< endl;
+    if(strlen(cinfo->msg)>0)
+        cout << "All data from " << cinfo->name << "@" << cinfo->addr
+            << ":" << cinfo->port << " are:\n" << cinfo->msg;
     else cout << "No data transferred." << endl;
     cout << "===========================================================" << endl;
-    c->connfd=-1;
-    delete c->name;
-    delete c->msg;
+    cinfo->connfd=-1;
+    delete cinfo->name;
+    delete cinfo->msg;
 }
