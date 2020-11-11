@@ -148,6 +148,7 @@ int main() {
                         close_cli(cinfo);
                         break;
                     }
+                    if(--nready<=0) break;
                     continue;
                 }
                 

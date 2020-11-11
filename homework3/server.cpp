@@ -102,6 +102,8 @@ int main() {
         cinfo.port = ntohs(cliaddr.sin_port);
         cinfo.msgpos = 0;
         cinfo.connfd = connfd;
+        cinfo.msg = new char[MAXMESSAGESIZE];
+        cinfo.name = new char[MAXDATASIZE];
         //create client thread
         if(pthread_create(&tid,NULL,&start,&cinfo)<0) {
             perror("Create thread failed..");
@@ -128,17 +130,13 @@ void process() {
     //get private info from TSD
     struct c_info *cinfo = (struct c_info *)pthread_getspecific(key);
     int connfd = cinfo->connfd;
-    char message[MAXMESSAGESIZE];
-    cinfo->msg = message;
     //reveive client name
-    char name[MAXDATASIZE];
-    if(recv(connfd,name,MAXDATASIZE,0)==-1) {
+    if(recv(connfd,cinfo->name,MAXDATASIZE,0)==-1) {
         perror("Receive client name failed: ");
         cout << "Connection "<< cinfo->addr
             << ":" << cinfo->port << " closed."<< endl;
         return;
     }
-    cinfo->name = name;
     cout << "New connection from: " << cinfo->name << "@" << cinfo->addr
         << ":" << cinfo->port << endl;
     char welc[]="Welcome to my server,";
