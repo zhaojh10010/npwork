@@ -165,9 +165,8 @@ void process() {
         //so ignore buffer overflow problem
         int len = strlen(buf);
         for(i=0;i<len;i++) {
-            cinfo->msg[cinfo->msgpos+i] = buf[i];
+            cinfo->msg[cinfo->msgpos++] = buf[i];
         }
-        cinfo->msgpos += i;
         cinfo->msg[cinfo->msgpos] = '\n';//add '\n' for every received msg
         cinfo->msgpos++;
 
