@@ -11,7 +11,7 @@
 using namespace std;
 #define BACKLOG_NUM 10 //maximum backlog num
 #define PORT 8888
-#define MAXDATASIZE 100
+#define MAXDATASIZE 1000
 #define MAXMESSAGESIZE 9999
 static pthread_key_t key;
 static pthread_once_t key_once = PTHREAD_ONCE_INIT;

@@ -14,8 +14,8 @@
 using namespace std;
 #define BACKLOG_NUM 10 //maximum backlog num
 #define PORT 8888
-#define MAXDATASIZE 100
-#define MAXMESSAGESIZE 9999
+#define MAXDATASIZE 1000
+#define MAXMESSAGESIZE 10000
 fd_set rset,allset;
 
 /**

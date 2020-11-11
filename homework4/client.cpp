@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 using namespace std;
-#define MAXDATASIZE 100
+#define MAXDATASIZE 1000
 #define SERVER_PORT 8888
 
 int main(int argc, char *argv[]) {
