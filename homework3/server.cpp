@@ -132,8 +132,7 @@ void process() {
     cinfo->msg = message;
     //reveive client name
     char name[MAXDATASIZE];
-    int numbytes;
-    if((numbytes=recv(connfd,name,MAXDATASIZE,0))==-1) {
+    if(recv(connfd,name,MAXDATASIZE,0)==-1) {
         perror("Receive client name failed: ");
         cout << "Connection "<< cinfo->addr
             << ":" << cinfo->port << " closed."<< endl;
@@ -152,7 +151,7 @@ void process() {
     }
     while(1) {
         char buf[MAXDATASIZE];
-        int i,j;
+        int numbytes,i,j;
         bzero(buf,MAXDATASIZE);
         if((numbytes=recv(connfd,buf,MAXDATASIZE,0))<=0) {
             cout << "===========================================================" << endl;
