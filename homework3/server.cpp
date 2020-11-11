@@ -132,9 +132,9 @@ void process() {
     cinfo->msg = message;
     //reveive client name
     char name[MAXDATASIZE];
-    if(recv(connfd,name,MAXDATASIZE,0)==-1) {
+    int numbytes;
+    if((numbytes=recv(connfd,name,MAXDATASIZE,0))==-1) {
         perror("Receive client name failed: ");
-        // close(connfd);
         cout << "Connection "<< cinfo->addr
             << ":" << cinfo->port << " closed."<< endl;
         return;
@@ -145,18 +145,20 @@ void process() {
     char welc[]="Welcome to my server,";
     strcat(welc,cinfo->name);
     if(send(connfd,welc,strlen(welc)+1,0)==-1) {
-        perror("Connection is closed.");
-        // close(connfd);
+        perror("Send message failed: ");
+        cout << "Connection "<< cinfo->addr
+            << ":" << cinfo->port << " closed."<< endl;
         return;
     }
     while(1) {
         char buf[MAXDATASIZE];
-        int numbytes,i,j;
+        int i,j;
         bzero(buf,MAXDATASIZE);
         if((numbytes=recv(connfd,buf,MAXDATASIZE,0))<=0) {
             cout << "===========================================================" << endl;
             cout << "Warning: No information received from "<< cinfo->name << "@" << cinfo->addr
                 << ":" << cinfo->port << ".Connection will close immediately." << endl;
+            if(numbytes==0) close(connfd);
             break;
         };
         cout << cinfo->name << ":" << buf << endl;
