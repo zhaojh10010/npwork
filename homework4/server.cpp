@@ -148,7 +148,6 @@ int main() {
                         close_cli(cinfo);
                         break;
                     }
-                    continue;
                 } else //process client request
                     process(cinfo,buf);
                 if(--nready<=0) break;
