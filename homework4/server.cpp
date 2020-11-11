@@ -125,30 +125,30 @@ int main() {
         }
         for(i=0;i<=maxi;i++) {
             bzero(buf,MAXDATASIZE);
-            struct c_info cinfo = clients[i];//浅拷贝???
-            if((clifd=cinfo.connfd)<0) continue;
+            struct c_info *c = &clients[i];
+            if((clifd=c->connfd)<0) continue;
             if(FD_ISSET(clifd,&rset)) {
-                if(strlen(cinfo.name)==0) {//first connect
+                if(strlen(c->name)==0) {//first connect
                     //reveive client name
-                    if(recv(cinfo.connfd,cinfo.name,MAXDATASIZE,0)==-1) {
+                    if(recv(c->connfd,c->name,MAXDATASIZE,0)==-1) {
                         perror("Receive client name failed: ");
-                        close_cli(&cinfo);
+                        close_cli(c);
                         break;
                     }
-                    cout << "New connection from: " << cinfo.name << "@" << cinfo.addr
-                        << ":" << cinfo.port << endl;
+                    cout << "New connection from: " << c->name << "@" << c->addr
+                        << ":" << c->port << endl;
                     char welc[]="Welcome to my server,";
-                    strcat(welc,cinfo.name);
+                    strcat(welc,c->name);
                     if(send(connfd,welc,strlen(welc)+1,0)==-1) {
                         perror("Send error: ");
-                        close_cli(&cinfo);
+                        close_cli(c);
                         break;
                     }
                 }
                 
                 //process client request
                 // process(&cinfo,buf);
-                process(&clients[i],buf);
+                process(c,buf);
                 if(--nready<=0) break;
             }
         }
@@ -159,48 +159,46 @@ int main() {
 }
 
 void process(struct c_info *c, char *buf) {
-    struct c_info cinfo = *c;
-    int connfd = cinfo.connfd;
+    int connfd = c->connfd;
     
     int numbytes,i,j;
     if((numbytes=recv(connfd,buf,MAXDATASIZE,0))<=0) {
         if(numbytes==0)
             close(connfd);
-        close_cli(&cinfo);
+        close_cli(c);
         return;
     };
-    cout << cinfo.name << ":" << buf << endl;
+    cout << c->name << ":" << buf << endl;
     
     //Suppose the MAXMESSAGESIZE is suitable for a client in a session
     //so ignore buffer overflow problem
 
-    //TODO pointer problem
     int len = strlen(buf);
     for(i=0;i<len;i++) {
-        cinfo.msg[cinfo.msgpos++] = buf[i];
+        c->msg[c->msgpos++] = buf[i];
     }
-    cinfo.msg[cinfo.msgpos] = '\n';//add '\n' for every received msg
-    cinfo.msgpos++;
+    c->msg[c->msgpos] = '\n';//add '\n' for every received msg
+    c->msgpos++;
     //send message back
     if(send(connfd,buf,len+1,0)==-1) {
         perror("Send message failed: ");
-        close_cli(&cinfo);
+        close_cli(c);
         return;
     }
 }
 
 void close_cli(struct c_info *c) {
-    struct c_info cinfo = *c;
-    FD_CLR(cinfo.connfd, &allset);
+    // struct c_info cinfo = *c;
+    FD_CLR(c->connfd, &allset);
     cout << "===========================================================" << endl;
-    cout << "Notice: Connection from " << cinfo.name << "@" << cinfo.addr
-            << ":" << cinfo.port << " closed."<< endl;
-    if(strlen(cinfo.msg)>0)
-        cout << "All data from " << cinfo.name << "@" << cinfo.addr
-            << ":" << cinfo.port << " are:\n" << cinfo.msg;
+    cout << "Notice: Connection from " << c->name << "@" << c->addr
+            << ":" << c->port << " closed."<< endl;
+    if(strlen(c->msg)>0)
+        cout << "All data from " << c->name << "@" << c->addr
+            << ":" << c->port << " are:\n" << c->msg;
     else cout << "No data transferred." << endl;
     cout << "===========================================================" << endl;
-    cinfo.connfd=-1;
-    delete cinfo.name;
-    delete cinfo.msg;
+    c->connfd=-1;
+    delete c->name;
+    delete c->msg;
 }
