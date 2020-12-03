@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../common/common.h"
 
 typedef struct
 {
@@ -266,7 +266,7 @@ int sbuf_remove(sbuf_t *sp)
     P(&sp->mutex);                          /* 锁定 */
     item = sp->buf[(++sp->front)%(sp->n)];  /* 移除 */
     V(&sp->mutex);                          /* 解锁 */
-    V(&sp->slots);                          、
+    V(&sp->slots);                          
     return item;
 }
 

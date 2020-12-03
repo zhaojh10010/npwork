@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../common/common.h"
  
 void doit(int fd);  
 void read_requesthdrs(rio_t *rp);  //读并忽略请求报头  
@@ -16,7 +16,7 @@ int main(int argc, char const *argv[])
     struct sockaddr_storage clientaddr;  
   
     if(argc != 2) {
-        fprintf(stderr, "usage: %s\n", argv[0]);  
+        fprintf(stderr, "usage: %s <port>\n", argv[0]);  
         exit(0);  
     }     
  
@@ -25,7 +25,7 @@ int main(int argc, char const *argv[])
         clientlen = sizeof(clientaddr);  
         connfd = Accept(listenfd,(SA *)&clientaddr, &clientlen);
         getnameinfo((SA*)&clientaddr, clientlen, hostname, MAXLINE, port, MAXLINE, 0);
-        printf("Accept connection from (%s , %s)\n", hostname, port);
+        printf("New connection from (%s , %s)\n", hostname, port);
         doit(connfd);  
         Close(connfd);  
     }

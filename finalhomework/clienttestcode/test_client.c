@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../common/common.h"
 #define BILLION 1E9
 
 int main(int argc, char** argv) {

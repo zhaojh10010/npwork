@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../common/common.h"
  
 void doit(int fd);  
 void read_requesthdrs(rio_t *rp);  //读并忽略请求报头  
